@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: payroll
-        image: myawesomeapps/payroll:1.1-multiarch
+        image: myawesomeapps/payroll:1.2-multiarch
         resources:
           limits:
             memory: "128Mi"

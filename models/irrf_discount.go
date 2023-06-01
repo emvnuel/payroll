@@ -28,7 +28,7 @@ const DEPENDENT_DEDUCTION_AMOUNT = 189.59
 
 var (
 	IRRF_RANGE_1 = NewIRRFRange(decimal.Zero, decimal.NewFromFloat(2112.00), decimal.Zero, decimal.Zero)
-	IRRF_RANGE_2 = NewIRRFRange(decimal.NewFromFloat(2112.00), decimal.NewFromFloat(2826.65), decimal.NewFromFloat(0.075), decimal.NewFromFloat(142.80))
+	IRRF_RANGE_2 = NewIRRFRange(decimal.NewFromFloat(2112.01), decimal.NewFromFloat(2826.65), decimal.NewFromFloat(0.075), decimal.NewFromFloat(142.80))
 	IRRF_RANGE_3 = NewIRRFRange(decimal.NewFromFloat(2826.66), decimal.NewFromFloat(3751.05), decimal.NewFromFloat(0.150), decimal.NewFromFloat(354.80))
 	IRRF_RANGE_4 = NewIRRFRange(decimal.NewFromFloat(3751.06), decimal.NewFromFloat(4664.68), decimal.NewFromFloat(0.225), decimal.NewFromFloat(636.13))
 	IRRF_RANGE_5 = NewIRRFRange(decimal.NewFromFloat(4664.68), decimal.NewFromFloat(1000000), decimal.NewFromFloat(0.275), decimal.NewFromFloat(869.36))
