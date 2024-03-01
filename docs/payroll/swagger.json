@@ -1,0 +1,127 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server server.",
+        "title": "Gin Swagger Example API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/payroll": {
+            "get": {
+                "description": "This endpoint calculates the net pay based on gross pay, number of dependents, and applied discounts.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payroll"
+                ],
+                "summary": "Calculate Payroll",
+                "parameters": [
+                    {
+                        "minimum": 1412,
+                        "type": "number",
+                        "description": "Gross pay of the employee",
+                        "name": "grossPay",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Number of dependents of the employee",
+                        "name": "numberOfDependents",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "number",
+                        "description": "Value of the fixed amount discount",
+                        "name": "fixedAmountDiscount",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 0,
+                        "type": "number",
+                        "description": "Percentage discount value (between 0 and 100)",
+                        "name": "percentangeDiscount",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payroll information",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.PayrollResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid fields provided",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers.DiscountResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "controllers.Error": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.PayrollResponse": {
+            "type": "object",
+            "properties": {
+                "discounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.DiscountResponse"
+                    }
+                },
+                "grossPay": {
+                    "type": "number"
+                },
+                "netPay": {
+                    "type": "number"
+                },
+                "totalDiscount": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

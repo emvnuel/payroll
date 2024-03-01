@@ -1,0 +1,88 @@
+basePath: /
+definitions:
+  controllers.DiscountResponse:
+    properties:
+      name:
+        type: string
+      value:
+        type: number
+    type: object
+  controllers.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  controllers.PayrollResponse:
+    properties:
+      discounts:
+        items:
+          $ref: '#/definitions/controllers.DiscountResponse'
+        type: array
+      grossPay:
+        type: number
+      netPay:
+        type: number
+      totalDiscount:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Gin Swagger Example API
+  version: "1.0"
+paths:
+  /payroll:
+    get:
+      description: This endpoint calculates the net pay based on gross pay, number
+        of dependents, and applied discounts.
+      parameters:
+      - description: Gross pay of the employee
+        in: query
+        minimum: 1412
+        name: grossPay
+        required: true
+        type: number
+      - description: Number of dependents of the employee
+        in: query
+        minimum: 0
+        name: numberOfDependents
+        required: true
+        type: integer
+      - description: Value of the fixed amount discount
+        in: query
+        minimum: 0
+        name: fixedAmountDiscount
+        required: true
+        type: number
+      - description: Percentage discount value (between 0 and 100)
+        in: query
+        maximum: 100
+        minimum: 0
+        name: percentangeDiscount
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payroll information
+          schema:
+            $ref: '#/definitions/controllers.PayrollResponse'
+        "400":
+          description: Invalid fields provided
+          schema:
+            $ref: '#/definitions/controllers.Error'
+      summary: Calculate Payroll
+      tags:
+      - payroll
+schemes:
+- http
+swagger: "2.0"

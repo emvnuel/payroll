@@ -21,6 +21,10 @@ type DiscountResponse struct {
 	Name  string  `json:"name"`
 }
 
+type Error struct {
+	Message string `json:"message"`
+}
+
 func NewPayrollResponse(p models.Payroll) PayrollResponse {
 	var discountsResponse []DiscountResponse
 
@@ -31,6 +35,17 @@ func NewPayrollResponse(p models.Payroll) PayrollResponse {
 	return PayrollResponse{GrossPay: p.GrossPay.InexactFloat64(), NetPay: p.NetPay().InexactFloat64(), TotalDiscount: p.TotalDiscount().InexactFloat64(), Discounts: discountsResponse}
 }
 
+// @Summary Calculate Payroll
+// @Description This endpoint calculates the net pay based on gross pay, number of dependents, and applied discounts.
+// @Tags payroll
+// @Param grossPay query number true "Gross pay of the employee" minimum(1412)
+// @Param numberOfDependents query integer true "Number of dependents of the employee" minimum(0)
+// @Param fixedAmountDiscount query number true "Value of the fixed amount discount" minimum(0)
+// @Param percentangeDiscount query number true "Percentage discount value (between 0 and 100)" minimum(0) maximum(100)
+// @Produce  json
+// @Success 200 {object} controllers.PayrollResponse "Payroll information"
+// @Failure 400 {object} controllers.Error "Invalid fields provided"
+// @Router /payroll [get]
 func GetPayroll(c *gin.Context) {
 
 	grossPay, err1 := strconv.ParseFloat(c.Query("grossPay"), 64)
@@ -40,12 +55,12 @@ func GetPayroll(c *gin.Context) {
 
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil ||
 		numberOfDependents < 0 || fixedAmountDiscountValue < 0 || percentangeDiscountValue < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campos inválidos"})
+		c.JSON(http.StatusBadRequest, Error{Message: "Campos inválidos"})
 		return
 	}
 
-	if grossPay < 1212 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Salário bruto deve ser maior ou igual a R$1.212,00"})
+	if grossPay < 1412 {
+		c.JSON(http.StatusBadRequest, Error{Message: "Salário bruto deve ser maior ou igual a R$1.412,00"})
 		return
 	}
 
@@ -54,5 +69,5 @@ func GetPayroll(c *gin.Context) {
 
 	payroll := models.NewPayroll(decimal.NewFromFloat(grossPay), int64(numberOfDependents), fixedDiscount, percentangeDiscount)
 
-	c.JSON(http.StatusOK, gin.H{"data": NewPayrollResponse(payroll)})
+	c.JSON(http.StatusOK, NewPayrollResponse(payroll))
 }
