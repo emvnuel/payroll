@@ -18,7 +18,6 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
     "basePath": "/",
     "paths": {
         "/payroll": {
@@ -62,6 +61,14 @@
                         "type": "number",
                         "description": "Percentage discount value (between 0 and 100)",
                         "name": "percentangeDiscount",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Simplified deduction",
+                        "name": "simplifiedDeduction",
                         "in": "query",
                         "required": true
                     }

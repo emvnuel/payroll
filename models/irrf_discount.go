@@ -3,18 +3,20 @@ package models
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/shopspring/decimal"
 )
 
 const DEPENDENT_DEDUCTION_AMOUNT = 189.59
 
-var IRRFRanges = loadIRRFRangesFromFile("./resources/irrf_ranges.json")
+var IRRFRanges = loadIRRFRangesFromFile("resources/irrf_ranges.json")
 
 type IRRFDiscount struct {
 	GrossPay            decimal.Decimal
 	NumberOfDependents  int64
 	INSSDeductionAmount decimal.Decimal
+	SimplifiedDeduction bool
 }
 
 type IRRFRange struct {
@@ -24,8 +26,16 @@ type IRRFRange struct {
 	Deduction     decimal.Decimal `json:"deduction"`
 }
 
-func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal) IRRFRange {
-	return IRRFRange{
+func NewIRRFDiscount(grossPay decimal.Decimal,
+	numberOfDependents int64,
+	inssDeductionAmount decimal.Decimal,
+	simplifiedDeduction bool) *IRRFDiscount {
+	return &IRRFDiscount{GrossPay: grossPay, NumberOfDependents: numberOfDependents, INSSDeductionAmount: inssDeductionAmount, SimplifiedDeduction: simplifiedDeduction}
+
+}
+
+func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal) *IRRFRange {
+	return &IRRFRange{
 		StartingValue: startingValue,
 		EndingValue:   endingValue,
 		Aliquot:       aliquot,
@@ -34,7 +44,8 @@ func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal
 }
 
 func loadIRRFRangesFromFile(filename string) []IRRFRange {
-	data, err := os.ReadFile(filename)
+	absPath, _ := filepath.Abs(filename)
+	data, err := os.ReadFile(absPath)
 
 	if err != nil {
 		panic(err)
@@ -53,7 +64,14 @@ func (i IRRFDiscount) dependentsDeduction() decimal.Decimal {
 }
 
 func (i IRRFDiscount) totalDeduction() decimal.Decimal {
+	if i.SimplifiedDeduction {
+		return simplifiedDeductionAmount()
+	}
 	return i.dependentsDeduction().Add(i.INSSDeductionAmount)
+}
+
+func simplifiedDeductionAmount() decimal.Decimal {
+	return IRRFRanges[0].EndingValue.Mul(decimal.NewFromFloat32(0.25))
 }
 
 func (i IRRFDiscount) taxableBase() decimal.Decimal {

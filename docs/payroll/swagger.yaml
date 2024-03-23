@@ -25,7 +25,6 @@ definitions:
       totalDiscount:
         type: number
     type: object
-host: localhost:8080
 info:
   contact:
     email: support@swagger.io
@@ -69,6 +68,12 @@ paths:
         name: percentangeDiscount
         required: true
         type: number
+      - default: false
+        description: Simplified deduction
+        in: query
+        name: simplifiedDeduction
+        required: true
+        type: boolean
       produces:
       - application/json
       responses:

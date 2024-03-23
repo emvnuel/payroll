@@ -67,6 +67,14 @@ const docTemplate = `{
                         "name": "percentangeDiscount",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Simplified deduction",
+                        "name": "simplifiedDeduction",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -132,7 +140,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "Gin Swagger Example API",

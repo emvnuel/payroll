@@ -25,7 +25,7 @@ import (
 // @schemes http
 func main() {
 	r := gin.Default()
-	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json") // The url pointing to API definition
+	url := ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	r.GET("/payroll", controllers.GetPayroll)
 	r.Run() // listen and serve on 0.0.0.0:8080

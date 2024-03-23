@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: payroll
-        image: myawesomeapps/payroll:1.2-multiarch
+        image: myawesomeapps/payroll:1.5-multiarch
         resources:
           limits:
             memory: "128Mi"
@@ -26,6 +26,7 @@ kind: Service
 metadata:
   name: payroll-svc
 spec:
+  type: NodePort
   selector:
     app: payroll
   ports:
@@ -44,10 +45,10 @@ metadata:
 spec:
   tls:
     - hosts:
-      - "app.labz.tk"
+      - "payroll.labzzz.shop"
       secretName: "app-tls"
   rules:
-  - host: app.labz.tk
+  - host: payroll.labzzz.shop
     http:
       paths:
       - pathType: Prefix
@@ -56,5 +57,4 @@ spec:
           service:
             name: payroll-svc
             port: 
-              number: 8080   
-
+              number: 8080 

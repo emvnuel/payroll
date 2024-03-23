@@ -1,20 +1,22 @@
 package models
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+)
 
 type Payroll struct {
 	GrossPay  decimal.Decimal
 	Discounts []Discount
 }
 
-func NewPayroll(grosspay decimal.Decimal, numberOfDependents int64, additionalDiscounts ...Discount) Payroll {
+func NewPayroll(grosspay decimal.Decimal, numberOfDependents int64, simplifiedDeduction bool, additionalDiscounts ...Discount) *Payroll {
 
-	inss := INSSDiscount{GrossPay: grosspay}
-	irrf := IRRFDiscount{GrossPay: grosspay, NumberOfDependents: numberOfDependents, INSSDeductionAmount: inss.Value()}
+	inss := NewINSSDiscount(grosspay)
+	irrf := NewIRRFDiscount(grosspay, numberOfDependents, inss.Value(), simplifiedDeduction)
 	payroll := Payroll{GrossPay: grosspay, Discounts: []Discount{inss, irrf}}
 	payroll.Discounts = append(payroll.Discounts, additionalDiscounts...)
 
-	return payroll
+	return &payroll
 }
 
 func (p Payroll) NetPay() decimal.Decimal {
