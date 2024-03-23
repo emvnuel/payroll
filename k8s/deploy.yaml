@@ -46,7 +46,7 @@ spec:
   tls:
     - hosts:
       - "payroll.labzzz.shop"
-      secretName: "app-tls"
+      secretName: "payroll-tls"
   rules:
   - host: payroll.labzzz.shop
     http:
