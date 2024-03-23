@@ -22,7 +22,7 @@ import (
 
 // @host localhost:8080
 // @BasePath /
-// @schemes http
+// @schemes http https
 func main() {
 	r := gin.Default()
 	url := ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
