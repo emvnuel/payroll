@@ -61,9 +61,9 @@ paths:
         name: fixedAmountDiscount
         required: true
         type: number
-      - description: Percentage discount value (between 0 and 100)
+      - description: Percentage discount value (between 0 and 1)
         in: query
-        maximum: 100
+        maximum: 1
         minimum: 0
         name: percentangeDiscount
         required: true

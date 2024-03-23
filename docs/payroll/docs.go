@@ -60,10 +60,10 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "maximum": 100,
+                        "maximum": 1,
                         "minimum": 0,
                         "type": "number",
-                        "description": "Percentage discount value (between 0 and 100)",
+                        "description": "Percentage discount value (between 0 and 1)",
                         "name": "percentangeDiscount",
                         "in": "query",
                         "required": true

@@ -41,7 +41,7 @@ func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
 // @Param grossPay query number true "Gross pay of the employee" minimum(1412)
 // @Param numberOfDependents query integer true "Number of dependents of the employee" minimum(0)
 // @Param fixedAmountDiscount query number true "Value of the fixed amount discount" minimum(0)
-// @Param percentangeDiscount query number true "Percentage discount value (between 0 and 100)" minimum(0) maximum(100)
+// @Param percentangeDiscount query number true "Percentage discount value (between 0 and 1)" minimum(0) maximum(1)
 // @Param simplifiedDeduction query boolean true "Simplified deduction" default(false)
 // @Produce  json
 // @Success 200 {object} controllers.PayrollResponse "Payroll information"
@@ -63,6 +63,16 @@ func GetPayroll(c *gin.Context) {
 
 	if grossPay < 1412 {
 		c.JSON(http.StatusBadRequest, Error{Message: "Salário bruto deve ser maior ou igual a R$1.412,00"})
+		return
+	}
+
+	if percentangeDiscountValue < 0 || percentangeDiscountValue > 1 {
+		c.JSON(http.StatusBadRequest, Error{Message: "Porcentagem deve ser entre 0 e 1"})
+		return
+	}
+
+	if fixedAmountDiscountValue < 0 {
+		c.JSON(http.StatusBadRequest, Error{Message: "Valor fixo não pode ser negativo"})
 		return
 	}
 
