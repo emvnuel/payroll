@@ -142,7 +142,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
 	BasePath:         "/",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"http", "https"},
 	Title:            "Gin Swagger Example API",
 	Description:      "This is a sample server server.",
 	InfoInstanceName: "swagger",
