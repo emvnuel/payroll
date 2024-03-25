@@ -4,6 +4,7 @@ import (
 	"github.com/emvnuel/payroll/controllers"
 	_ "github.com/emvnuel/payroll/docs/payroll"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -27,5 +28,6 @@ func main() {
 	url := ginSwagger.URL("/swagger/doc.json") // The url pointing to API definition
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	r.GET("/payroll", controllers.GetPayroll)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
