@@ -26,8 +26,9 @@ kind: Service
 metadata:
   name: payroll-svc
   annotations:
-    prometheus.io/port: "metrics"
-    prometheus.io/scrape: "true"
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/data/metrics'
+    prometheus.io/port: '8080'
   labels:
     foo: bar
 spec:
