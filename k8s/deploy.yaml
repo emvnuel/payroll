@@ -10,9 +10,6 @@ spec:
     metadata:
       labels:
         app: payroll
-        prometheus.io/scrape: 'true'
-        prometheus.io/path: '/metrics'
-        prometheus.io/port: '8080'
     spec:
       containers:
       - name: payroll
@@ -27,6 +24,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '8080'
   name: payroll-svc
 spec:
   type: ClusterIP
