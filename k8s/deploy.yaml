@@ -10,9 +10,6 @@ spec:
     metadata:
       labels:
         app: payroll
-    annotations:
-      prometheus.io/scrape: 'true'
-      prometheus.io/port:   '9090' 
     spec:
       containers:
       - name: payroll
@@ -27,9 +24,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app.kubernetes.io/name: payroll-svc
   name: payroll-svc
+  annotations:
+    prometheus.io/port: "metrics"
+    prometheus.io/scrape: "true"
+  labels:
+    foo: bar
 spec:
   type: ClusterIP
   selector:
