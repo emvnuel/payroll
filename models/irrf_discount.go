@@ -20,8 +20,8 @@ type IRRFDiscount struct {
 }
 
 type IRRFRange struct {
-	StartingValue decimal.Decimal `json:"starting_value"`
-	EndingValue   decimal.Decimal `json:"ending_value"`
+	StartingValue decimal.Decimal `json:"init_value"`
+	EndingValue   decimal.Decimal `json:"end_value"`
 	Aliquot       decimal.Decimal `json:"aliquot"`
 	Deduction     decimal.Decimal `json:"deduction"`
 }

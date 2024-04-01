@@ -1,32 +1,32 @@
 [
-  {
-    "index": 1,
-    "aliquot": 0.075,
-    "init_value": 1412.0,
-    "end_value": 1412.0
-  },
-  {
-    "index": 2,
-    "aliquot": 0.09,
-    "init_value": 1412.01,
-    "end_value": 2666.68
-  },
-  {
-    "index": 3,
-    "aliquot": 0.12,
-    "init_value": 2666.69,
-    "end_value": 4000.03
-  },
-  {
-    "index": 4,
-    "aliquot": 0.14,
-    "init_value": 4000.04,
-    "end_value": 7786.02
-  },
-  {
-    "index": 5,
-    "aliquot": 0.14,
-    "init_value": 7786.03,
-    "end_value": 1000000.0
-  }
+	{
+		"index": 1,
+		"aliquot": 0.075,
+		"init_value": 1412.0,
+		"end_value": 1412.0
+	},
+	{
+		"index": 2,
+		"aliquot": 0.09,
+		"init_value": 1412.01,
+		"end_value": 2666.68
+	},
+	{
+		"index": 3,
+		"aliquot": 0.12,
+		"init_value": 2666.69,
+		"end_value": 4000.03
+	},
+	{
+		"index": 4,
+		"aliquot": 0.14,
+		"init_value": 4000.04,
+		"end_value": 7786.02
+	},
+	{
+		"index": 5,
+		"aliquot": 0.14,
+		"init_value": 7786.03,
+		"end_value": 1000000.0
+	}
 ]

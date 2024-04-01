@@ -1,32 +1,32 @@
 [
     {
-        "starting_value": "0.00",
-        "ending_value": "2259.20",
-        "aliquot": "0.00",
-        "deduction": "0.00"
+        "init_value": 0.00,
+        "end_value": 2259.20,
+        "aliquot": 0.00,
+        "deduction": 0.00
     },
     {
-        "starting_value": "2259.21",
-        "ending_value": "2828.65",
-        "aliquot": "0.075",
-        "deduction": "169.44"
+        "init_value": 2259.21,
+        "end_value": 2828.65,
+        "aliquot": 0.075,
+        "deduction": 169.44
     },
     {
-        "starting_value": "2828.66",
-        "ending_value": "3751.05",
-        "aliquot": "0.150",
-        "deduction": "381.44"
+        "init_value": 2828.66,
+        "end_value": 3751.05,
+        "aliquot": 0.150,
+        "deduction": 381.44
     },
     {
-        "starting_value": "3751.06",
-        "ending_value": "4664.68",
-        "aliquot": "0.225",
-        "deduction": "662.77"
+        "init_value": 3751.06,
+        "end_value": 4664.68,
+        "aliquot": 0.225,
+        "deduction": 662.77
     },
     {
-        "starting_value": "4664.68",
-        "ending_value": "1000000.00",
-        "aliquot": "0.275",
-        "deduction": "896.00"
+        "init_value": 4664.68,
+        "end_value": 1000000.00,
+        "aliquot": 0.275,
+        "deduction": 896.00
     }
 ]
