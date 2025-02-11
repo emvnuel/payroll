@@ -3,14 +3,15 @@ package models
 import (
 	"encoding/json"
 	"os"
-	"path/filepath"
 
 	"github.com/shopspring/decimal"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
-const DEPENDENT_DEDUCTION_AMOUNT = 189.59
-
-var IRRFRanges = loadIRRFRangesFromFile("resources/irrf_ranges.json")
+var DEPENDENT_DEDUCTION_AMOUNT = os.Getenv("DEPENDENT_DEDUCTION_AMOUNT")
+var dependentDeductionAmount, _ = decimal.NewFromString(DEPENDENT_DEDUCTION_AMOUNT)
+var IRRFRanges = loadIRRFRangesFromEnv()
 
 type IRRFDiscount struct {
 	GrossPay            decimal.Decimal
@@ -43,24 +44,15 @@ func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal
 	}
 }
 
-func loadIRRFRangesFromFile(filename string) []IRRFRange {
-	absPath, _ := filepath.Abs(filename)
-	data, err := os.ReadFile(absPath)
-
-	if err != nil {
-		panic(err)
-	}
+func loadIRRFRangesFromEnv() []IRRFRange {
+	data := os.Getenv("IRRF_RANGES")
 	var irrfRanges []IRRFRange
-	err = json.Unmarshal(data, &irrfRanges)
-
-	if err != nil {
-		panic(err)
-	}
+	json.Unmarshal([]byte(data), &irrfRanges)
 	return irrfRanges
 }
 
 func (i IRRFDiscount) dependentsDeduction() decimal.Decimal {
-	return decimal.NewFromFloat(DEPENDENT_DEDUCTION_AMOUNT).Mul(decimal.NewFromInt(i.NumberOfDependents))
+	return dependentDeductionAmount.Mul(decimal.NewFromInt(i.NumberOfDependents))
 }
 
 func (i IRRFDiscount) totalDeduction() decimal.Decimal {

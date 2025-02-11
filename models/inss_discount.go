@@ -2,10 +2,12 @@ package models
 
 import (
 	"encoding/json"
+	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/shopspring/decimal"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type INSSDiscount struct {
@@ -32,25 +34,17 @@ func NewINSSRange(
 	return &INSSRange{Index: index, Aliquot: aliquot, InitValue: initValue, EndValue: endValue}
 }
 
-const (
-	INSS_RANGE_5_DISCOUNT_AMOUNT = 908.85
+var (
+	INSS_RANGE_5_DISCOUNT_AMOUNT, _ = decimal.NewFromString(os.Getenv("INSS_RANGE_5_DISCOUNT_AMOUNT"))
 )
 
-var INSSRanges []INSSRange = loadINSSRangesFromFile("resources/inss_ranges.json")
+var INSSRanges = loadINSSRangesFromEnv()
 
-func loadINSSRangesFromFile(filename string) []INSSRange {
-	absPath, err := filepath.Abs(filename)
-
-	if err != nil {
-		panic(err)
-	}
-
-	data, err := os.ReadFile(absPath)
-	if err != nil {
-		panic(err)
-	}
+func loadINSSRangesFromEnv() []INSSRange {
+	data := os.Getenv("INSS_RANGES")
 	var INSSRanges []INSSRange
-	json.Unmarshal(data, &INSSRanges)
+	json.Unmarshal([]byte(data), &INSSRanges)
+	log.Println("INSS_RANGES", INSSRanges)
 	return INSSRanges
 }
 
@@ -92,7 +86,7 @@ func (i INSSDiscount) Value() decimal.Decimal {
 		return inssRange.rangeDiscount()
 	}
 	if inssRange == INSSRanges[len(INSSRanges)-1] {
-		return decimal.NewFromFloat(INSS_RANGE_5_DISCOUNT_AMOUNT)
+		return INSS_RANGE_5_DISCOUNT_AMOUNT
 	}
 
 	prev := inssRange.InitValue.Sub(decimal.NewFromFloat(0.01))
