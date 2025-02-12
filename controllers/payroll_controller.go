@@ -77,7 +77,7 @@ func GetPayroll(c *gin.Context) {
 	}
 
 	fixedDiscount := models.NewFixedAmountDiscount(decimal.NewFromFloat(fixedAmountDiscountValue))
-	percentangeDiscount := models.NewPercentangeDiscount(decimal.NewFromFloat(grossPay), decimal.NewFromFloat(percentangeDiscountValue))
+	percentangeDiscount := models.NewPercentageDiscount(decimal.NewFromFloat(grossPay), decimal.NewFromFloat(percentangeDiscountValue))
 
 	payroll := models.NewPayroll(decimal.NewFromFloat(grossPay), int64(numberOfDependents), simplifiedDeduction, fixedDiscount, percentangeDiscount)
 

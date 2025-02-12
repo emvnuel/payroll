@@ -2,18 +2,18 @@ package models
 
 import "github.com/shopspring/decimal"
 
+type FixedAmountDiscount struct {
+	amount decimal.Decimal
+}
+
 func NewFixedAmountDiscount(amount decimal.Decimal) *FixedAmountDiscount {
 	return &FixedAmountDiscount{
-		Amount: amount,
+		amount: amount,
 	}
 }
 
-type FixedAmountDiscount struct {
-	Amount decimal.Decimal
-}
-
 func (fd FixedAmountDiscount) Value() decimal.Decimal {
-	return fd.Amount
+	return fd.amount
 }
 
 func (fd FixedAmountDiscount) Name() string {

@@ -2,22 +2,22 @@ package models
 
 import "github.com/shopspring/decimal"
 
-func NewPercentangeDiscount(amount decimal.Decimal, percentange decimal.Decimal) *PercentangeDiscount {
-	return &PercentangeDiscount{
-		Amount:      amount,
-		Percentange: percentange,
+type PercentageDiscount struct {
+	amount     decimal.Decimal
+	percentage decimal.Decimal
+}
+
+func NewPercentageDiscount(amount decimal.Decimal, percentage decimal.Decimal) *PercentageDiscount {
+	return &PercentageDiscount{
+		amount:     amount,
+		percentage: percentage,
 	}
 }
 
-type PercentangeDiscount struct {
-	Amount      decimal.Decimal
-	Percentange decimal.Decimal
+func (pd PercentageDiscount) Value() decimal.Decimal {
+	return pd.amount.Mul(pd.percentage).RoundBank(2)
 }
 
-func (pd PercentangeDiscount) Value() decimal.Decimal {
-	return pd.Amount.Mul(pd.Percentange)
-}
-
-func (pd PercentangeDiscount) Name() string {
+func (pd PercentageDiscount) Name() string {
 	return "Porcentagem"
 }
