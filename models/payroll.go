@@ -9,27 +9,39 @@ type Payroll struct {
 	Discounts []Discount
 }
 
-func NewPayroll(grosspay decimal.Decimal, numberOfDependents int64, simplifiedDeduction bool, additionalDiscounts ...Discount) *Payroll {
+func NewPayroll(grossPay decimal.Decimal, numberOfDependents int64, simplifiedDeduction bool, additionalDiscounts ...Discount) *Payroll {
+	payroll := &Payroll{
+		GrossPay:  grossPay,
+		Discounts: make([]Discount, 0),
+	}
 
-	inss := NewINSSDiscount(grosspay)
-	irrf := NewIRRFDiscount(grosspay, numberOfDependents, inss.Value(), simplifiedDeduction)
-	payroll := Payroll{GrossPay: grosspay, Discounts: []Discount{inss, irrf}}
-	payroll.Discounts = append(payroll.Discounts, additionalDiscounts...)
+	payroll.addMandatoryDiscounts(numberOfDependents, simplifiedDeduction)
+	payroll.addOptionalDiscounts(additionalDiscounts...)
 
-	return &payroll
+	return payroll
 }
 
-func (p Payroll) NetPay() decimal.Decimal {
+func (p *Payroll) addMandatoryDiscounts(numberOfDependents int64, simplifiedDeduction bool) {
+	inss := NewINSSDiscount(p.GrossPay)
+	irrf := NewIRRFDiscount(p.GrossPay, numberOfDependents, inss.Value(), simplifiedDeduction)
+	p.Discounts = append(p.Discounts, inss, irrf)
+}
+
+func (p *Payroll) addOptionalDiscounts(discounts ...Discount) {
+	if len(discounts) > 0 {
+		p.Discounts = append(p.Discounts, discounts...)
+	}
+}
+
+func (p *Payroll) NetPay() decimal.Decimal {
 	return p.GrossPay.Sub(p.TotalDiscount())
 }
 
-func (p Payroll) TotalDiscount() decimal.Decimal {
+func (p *Payroll) TotalDiscount() decimal.Decimal {
 	totalDiscount := decimal.Zero
-
 	for _, discount := range p.Discounts {
 		totalDiscount = totalDiscount.Add(discount.Value())
 	}
-
 	return totalDiscount
 }
 

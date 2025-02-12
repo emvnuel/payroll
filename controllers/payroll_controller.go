@@ -25,14 +25,25 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
-	var discountsResponse []DiscountResponse
+func (e *Error) Error() string {
+	return e.Message
+}
 
-	for _, discount := range p.Discounts {
-		discountsResponse = append(discountsResponse, DiscountResponse{Value: discount.Value().InexactFloat64(), Name: discount.Name()})
+func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
+	discountsResponse := make([]DiscountResponse, len(p.Discounts))
+	for i, discount := range p.Discounts {
+		discountsResponse[i] = DiscountResponse{
+			Value: discount.Value().InexactFloat64(),
+			Name:  discount.Name(),
+		}
 	}
 
-	return &PayrollResponse{GrossPay: p.GrossPay.InexactFloat64(), NetPay: p.NetPay().InexactFloat64(), TotalDiscount: p.TotalDiscount().InexactFloat64(), Discounts: discountsResponse}
+	return &PayrollResponse{
+		GrossPay:      p.GrossPay.InexactFloat64(),
+		NetPay:        p.NetPay().InexactFloat64(),
+		TotalDiscount: p.TotalDiscount().InexactFloat64(),
+		Discounts:     discountsResponse,
+	}
 }
 
 // @Summary Calculate Payroll
@@ -48,38 +59,69 @@ func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
 // @Failure 400 {object} controllers.Error "Invalid fields provided"
 // @Router /payroll [get]
 func GetPayroll(c *gin.Context) {
+	params, err := parseAndValidateParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Error{Message: err.Error()})
+		return
+	}
 
+	fixedDiscount := models.NewFixedAmountDiscount(decimal.NewFromFloat(params.fixedAmountDiscount))
+	percentageDiscount := models.NewPercentageDiscount(
+		decimal.NewFromFloat(params.grossPay),
+		decimal.NewFromFloat(params.percentageDiscount),
+	)
+
+	payroll := models.NewPayroll(
+		decimal.NewFromFloat(params.grossPay),
+		int64(params.numberOfDependents),
+		params.simplifiedDeduction,
+		fixedDiscount,
+		percentageDiscount,
+	)
+
+	c.JSON(http.StatusOK, NewPayrollResponse(payroll))
+}
+
+type payrollParams struct {
+	grossPay            float64
+	numberOfDependents  int
+	fixedAmountDiscount float64
+	percentageDiscount  float64
+	simplifiedDeduction bool
+}
+
+func parseAndValidateParams(c *gin.Context) (*payrollParams, error) {
 	grossPay, err1 := strconv.ParseFloat(c.Query("grossPay"), 64)
 	numberOfDependents, err2 := strconv.Atoi(c.Query("numberOfDependents"))
-	fixedAmountDiscountValue, err3 := strconv.ParseFloat(c.Query("fixedAmountDiscount"), 64)
-	percentangeDiscountValue, err4 := strconv.ParseFloat(c.Query("percentangeDiscount"), 64)
+	fixedAmountDiscount, err3 := strconv.ParseFloat(c.Query("fixedAmountDiscount"), 64)
+	percentageDiscount, err4 := strconv.ParseFloat(c.Query("percentangeDiscount"), 64)
 	simplifiedDeduction, err5 := strconv.ParseBool(c.Query("simplifiedDeduction"))
 
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil ||
-		numberOfDependents < 0 || fixedAmountDiscountValue < 0 || percentangeDiscountValue < 0 {
-		c.JSON(http.StatusBadRequest, Error{Message: "Campos inválidos"})
-		return
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
+		return nil, &Error{Message: "Campos inválidos"}
+	}
+
+	if numberOfDependents < 0 {
+		return nil, &Error{Message: "Número de dependentes não pode ser negativo"}
 	}
 
 	if grossPay < 1412 {
-		c.JSON(http.StatusBadRequest, Error{Message: "Salário bruto deve ser maior ou igual a R$1.412,00"})
-		return
+		return nil, &Error{Message: "Salário bruto deve ser maior ou igual a R$1.412,00"}
 	}
 
-	if percentangeDiscountValue < 0 || percentangeDiscountValue > 1 {
-		c.JSON(http.StatusBadRequest, Error{Message: "Porcentagem deve ser entre 0 e 1"})
-		return
+	if percentageDiscount < 0 || percentageDiscount > 1 {
+		return nil, &Error{Message: "Porcentagem deve ser entre 0 e 1"}
 	}
 
-	if fixedAmountDiscountValue < 0 {
-		c.JSON(http.StatusBadRequest, Error{Message: "Valor fixo não pode ser negativo"})
-		return
+	if fixedAmountDiscount < 0 {
+		return nil, &Error{Message: "Valor fixo não pode ser negativo"}
 	}
 
-	fixedDiscount := models.NewFixedAmountDiscount(decimal.NewFromFloat(fixedAmountDiscountValue))
-	percentangeDiscount := models.NewPercentageDiscount(decimal.NewFromFloat(grossPay), decimal.NewFromFloat(percentangeDiscountValue))
-
-	payroll := models.NewPayroll(decimal.NewFromFloat(grossPay), int64(numberOfDependents), simplifiedDeduction, fixedDiscount, percentangeDiscount)
-
-	c.JSON(http.StatusOK, NewPayrollResponse(payroll))
+	return &payrollParams{
+		grossPay:            grossPay,
+		numberOfDependents:  numberOfDependents,
+		fixedAmountDiscount: fixedAmountDiscount,
+		percentageDiscount:  percentageDiscount,
+		simplifiedDeduction: simplifiedDeduction,
+	}, nil
 }

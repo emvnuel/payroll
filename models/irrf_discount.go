@@ -9,9 +9,12 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var DEPENDENT_DEDUCTION_AMOUNT = os.Getenv("DEPENDENT_DEDUCTION_AMOUNT")
-var dependentDeductionAmount, _ = decimal.NewFromString(DEPENDENT_DEDUCTION_AMOUNT)
-var IRRFRanges = loadIRRFRangesFromEnv()
+var (
+	DEPENDENT_DEDUCTION_AMOUNT    = os.Getenv("DEPENDENT_DEDUCTION_AMOUNT")
+	dependentDeductionAmount, _   = decimal.NewFromString(DEPENDENT_DEDUCTION_AMOUNT)
+	IRRFRanges                    = loadIRRFRangesFromEnv()
+	simplifiedDeductionPercentage = decimal.NewFromFloat32(0.25)
+)
 
 type IRRFDiscount struct {
 	GrossPay            decimal.Decimal
@@ -27,12 +30,13 @@ type IRRFRange struct {
 	Deduction     decimal.Decimal `json:"deduction"`
 }
 
-func NewIRRFDiscount(grossPay decimal.Decimal,
-	numberOfDependents int64,
-	inssDeductionAmount decimal.Decimal,
-	simplifiedDeduction bool) *IRRFDiscount {
-	return &IRRFDiscount{GrossPay: grossPay, NumberOfDependents: numberOfDependents, INSSDeductionAmount: inssDeductionAmount, SimplifiedDeduction: simplifiedDeduction}
-
+func NewIRRFDiscount(grossPay decimal.Decimal, numberOfDependents int64, inssDeductionAmount decimal.Decimal, simplifiedDeduction bool) *IRRFDiscount {
+	return &IRRFDiscount{
+		GrossPay:            grossPay,
+		NumberOfDependents:  numberOfDependents,
+		INSSDeductionAmount: inssDeductionAmount,
+		SimplifiedDeduction: simplifiedDeduction,
+	}
 }
 
 func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal) *IRRFRange {
@@ -47,44 +51,55 @@ func NewIRRFRange(startingValue, endingValue, aliquot, deduction decimal.Decimal
 func loadIRRFRangesFromEnv() []IRRFRange {
 	data := os.Getenv("IRRF_RANGES")
 	var irrfRanges []IRRFRange
-	json.Unmarshal([]byte(data), &irrfRanges)
+	if err := json.Unmarshal([]byte(data), &irrfRanges); err != nil {
+		// Consider logging the error or handling it appropriately
+		return nil
+	}
 	return irrfRanges
 }
 
-func (i IRRFDiscount) dependentsDeduction() decimal.Decimal {
+func (i *IRRFDiscount) dependentsDeduction() decimal.Decimal {
 	return dependentDeductionAmount.Mul(decimal.NewFromInt(i.NumberOfDependents))
 }
 
-func (i IRRFDiscount) totalDeduction() decimal.Decimal {
+func (i *IRRFDiscount) totalDeduction() decimal.Decimal {
 	if i.SimplifiedDeduction {
-		return simplifiedDeductionAmount()
+		return i.simplifiedDeductionAmount()
 	}
 	return i.dependentsDeduction().Add(i.INSSDeductionAmount)
 }
 
-func simplifiedDeductionAmount() decimal.Decimal {
-	return IRRFRanges[0].EndingValue.Mul(decimal.NewFromFloat32(0.25))
+func (i *IRRFDiscount) simplifiedDeductionAmount() decimal.Decimal {
+	if len(IRRFRanges) == 0 {
+		return decimal.Zero
+	}
+	return IRRFRanges[0].EndingValue.Mul(simplifiedDeductionPercentage)
 }
 
-func (i IRRFDiscount) taxableBase() decimal.Decimal {
+func (i *IRRFDiscount) taxableBase() decimal.Decimal {
 	return i.GrossPay.Sub(i.totalDeduction())
 }
 
-func (i IRRFDiscount) Value() decimal.Decimal {
-	matchingRange := findMatchingRange(i.taxableBase())
+func (i *IRRFDiscount) Value() decimal.Decimal {
+	matchingRange := i.findMatchingRange()
+	if matchingRange == nil {
+		return decimal.Zero
+	}
+
 	taxableBaseProduct := i.taxableBase().Mul(matchingRange.Aliquot)
 	return taxableBaseProduct.Sub(matchingRange.Deduction).RoundBank(2)
 }
 
-func findMatchingRange(baseAmount decimal.Decimal) *IRRFRange {
+func (i *IRRFDiscount) findMatchingRange() *IRRFRange {
+	taxBase := i.taxableBase()
 	for _, irrfRange := range IRRFRanges {
-		if baseAmount.GreaterThanOrEqual(irrfRange.StartingValue) && baseAmount.LessThanOrEqual(irrfRange.EndingValue) {
+		if taxBase.GreaterThanOrEqual(irrfRange.StartingValue) && taxBase.LessThanOrEqual(irrfRange.EndingValue) {
 			return &irrfRange
 		}
 	}
 	return nil
 }
 
-func (i IRRFDiscount) Name() string {
+func (i *IRRFDiscount) Name() string {
 	return "IRRF"
 }
