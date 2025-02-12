@@ -45,7 +45,6 @@ paths:
       parameters:
       - description: Gross pay of the employee
         in: query
-        minimum: 1412
         name: grossPay
         required: true
         type: number

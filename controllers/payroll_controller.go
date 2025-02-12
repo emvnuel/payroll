@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/emvnuel/payroll/models"
@@ -49,7 +51,7 @@ func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
 // @Summary Calculate Payroll
 // @Description This endpoint calculates the net pay based on gross pay, number of dependents, and applied discounts.
 // @Tags payroll
-// @Param grossPay query number true "Gross pay of the employee" minimum(1412)
+// @Param grossPay query number true "Gross pay of the employee"
 // @Param numberOfDependents query integer true "Number of dependents of the employee" minimum(0)
 // @Param fixedAmountDiscount query number true "Value of the fixed amount discount" minimum(0)
 // @Param percentangeDiscount query number true "Percentage discount value (between 0 and 1)" minimum(0) maximum(1)
@@ -105,8 +107,11 @@ func parseAndValidateParams(c *gin.Context) (*payrollParams, error) {
 		return nil, &Error{Message: "Número de dependentes não pode ser negativo"}
 	}
 
-	if grossPay < 1412 {
-		return nil, &Error{Message: "Salário bruto deve ser maior ou igual a R$1.412,00"}
+	minGrossPay := os.Getenv("MIN_GROSS_PAY")
+	minGrossPayFloat, _ := strconv.ParseFloat(minGrossPay, 64)
+
+	if grossPay < minGrossPayFloat {
+		return nil, &Error{Message: fmt.Sprintf("Salário bruto deve ser maior ou igual a R$%.2f", minGrossPayFloat)}
 	}
 
 	if percentageDiscount < 0 || percentageDiscount > 1 {

@@ -36,7 +36,6 @@ const docTemplate = `{
                 "summary": "Calculate Payroll",
                 "parameters": [
                     {
-                        "minimum": 1412,
                         "type": "number",
                         "description": "Gross pay of the employee",
                         "name": "grossPay",
