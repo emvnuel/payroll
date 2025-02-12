@@ -15,6 +15,4 @@ RUN mkdir -p /api
 RUN mkdir -p /api/resources
 WORKDIR /api
 COPY --from=builder /api/app .
-COPY --from=builder /api/resources/inss_ranges.json ./resources
-COPY --from=builder /api/resources/irrf_ranges.json ./resources
 ENTRYPOINT ["./app"]
