@@ -91,7 +91,7 @@ func (i INSSDiscount) Value() decimal.Decimal {
 	currentRangeAmount := i.GrossPay.Sub(inssRange.InitValue.Sub(decimal.NewFromFloat(0.01)))
 	currentRangeDiscount := currentRangeAmount.Mul(inssRange.Aliquot)
 
-	return currentRangeDiscount.Add(inssRange.calculatePreviousRangesDiscount()).RoundBank(2)
+	return currentRangeDiscount.Add(inssRange.calculatePreviousRangesDiscount()).Truncate(2)
 }
 
 func (i INSSDiscount) Name() string {

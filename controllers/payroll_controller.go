@@ -35,15 +35,15 @@ func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
 	discountsResponse := make([]DiscountResponse, len(p.Discounts))
 	for i, discount := range p.Discounts {
 		discountsResponse[i] = DiscountResponse{
-			Value: discount.Value().InexactFloat64(),
+			Value: discount.Value().RoundBank(2).InexactFloat64(),
 			Name:  discount.Name(),
 		}
 	}
 
 	return &PayrollResponse{
-		GrossPay:      p.GrossPay.InexactFloat64(),
-		NetPay:        p.NetPay().InexactFloat64(),
-		TotalDiscount: p.TotalDiscount().InexactFloat64(),
+		GrossPay:      p.GrossPay.RoundBank(2).InexactFloat64(),
+		NetPay:        p.NetPay().RoundBank(2).InexactFloat64(),
+		TotalDiscount: p.TotalDiscount().RoundBank(2).InexactFloat64(),
 		Discounts:     discountsResponse,
 	}
 }

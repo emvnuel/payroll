@@ -13,7 +13,7 @@ func NewFixedAmountDiscount(amount decimal.Decimal) *FixedAmountDiscount {
 }
 
 func (fd FixedAmountDiscount) Value() decimal.Decimal {
-	return fd.amount
+	return fd.amount.RoundBank(2)
 }
 
 func (fd FixedAmountDiscount) Name() string {
