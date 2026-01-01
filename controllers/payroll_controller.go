@@ -49,13 +49,12 @@ func NewPayrollResponse(p *models.Payroll) *PayrollResponse {
 }
 
 // @Summary Calculate Payroll
-// @Description This endpoint calculates the net pay based on gross pay, number of dependents, and applied discounts.
+// @Description This endpoint calculates the net pay based on gross pay, number of dependents, and applied discounts. The IRRF calculation automatically uses the most favorable method (simplified deduction vs dependent deduction).
 // @Tags payroll
 // @Param grossPay query number true "Gross pay of the employee"
 // @Param numberOfDependents query integer true "Number of dependents of the employee" minimum(0)
 // @Param fixedAmountDiscount query number true "Value of the fixed amount discount" minimum(0)
 // @Param percentangeDiscount query number true "Percentage discount value (between 0 and 1)" minimum(0) maximum(1)
-// @Param simplifiedDeduction query boolean true "Simplified deduction" default(false)
 // @Produce  json
 // @Success 200 {object} controllers.PayrollResponse "Payroll information"
 // @Failure 400 {object} controllers.Error "Invalid fields provided"
@@ -76,7 +75,6 @@ func GetPayroll(c *gin.Context) {
 	payroll := models.NewPayroll(
 		decimal.NewFromFloat(params.grossPay),
 		int64(params.numberOfDependents),
-		params.simplifiedDeduction,
 		fixedDiscount,
 		percentageDiscount,
 	)
@@ -89,7 +87,6 @@ type payrollParams struct {
 	numberOfDependents  int
 	fixedAmountDiscount float64
 	percentageDiscount  float64
-	simplifiedDeduction bool
 }
 
 func parseAndValidateParams(c *gin.Context) (*payrollParams, error) {
@@ -97,9 +94,8 @@ func parseAndValidateParams(c *gin.Context) (*payrollParams, error) {
 	numberOfDependents, err2 := strconv.Atoi(c.Query("numberOfDependents"))
 	fixedAmountDiscount, err3 := strconv.ParseFloat(c.Query("fixedAmountDiscount"), 64)
 	percentageDiscount, err4 := strconv.ParseFloat(c.Query("percentangeDiscount"), 64)
-	simplifiedDeduction, err5 := strconv.ParseBool(c.Query("simplifiedDeduction"))
 
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, &Error{Message: "Campos inválidos"}
 	}
 
@@ -127,6 +123,5 @@ func parseAndValidateParams(c *gin.Context) (*payrollParams, error) {
 		numberOfDependents:  numberOfDependents,
 		fixedAmountDiscount: fixedAmountDiscount,
 		percentageDiscount:  percentageDiscount,
-		simplifiedDeduction: simplifiedDeduction,
 	}, nil
 }

@@ -34,7 +34,6 @@ type IRRFDiscount struct {
 	GrossPay            decimal.Decimal
 	NumberOfDependents  int64
 	INSSDeductionAmount decimal.Decimal
-	SimplifiedDeduction bool
 }
 
 type IRRFRange struct {
@@ -44,12 +43,11 @@ type IRRFRange struct {
 	Deduction     decimal.Decimal `json:"deduction"`
 }
 
-func NewIRRFDiscount(grossPay decimal.Decimal, numberOfDependents int64, inssDeductionAmount decimal.Decimal, simplifiedDeduction bool) *IRRFDiscount {
+func NewIRRFDiscount(grossPay decimal.Decimal, numberOfDependents int64, inssDeductionAmount decimal.Decimal) *IRRFDiscount {
 	return &IRRFDiscount{
 		GrossPay:            grossPay,
 		NumberOfDependents:  numberOfDependents,
 		INSSDeductionAmount: inssDeductionAmount,
-		SimplifiedDeduction: simplifiedDeduction,
 	}
 }
 
@@ -85,13 +83,6 @@ func (i *IRRFDiscount) dependentsDeduction() decimal.Decimal {
 	return dependentDeductionAmount.Mul(decimal.NewFromInt(i.NumberOfDependents))
 }
 
-func (i *IRRFDiscount) totalDeduction() decimal.Decimal {
-	if i.SimplifiedDeduction {
-		return i.simplifiedDeductionAmount()
-	}
-	return i.dependentsDeduction().Add(i.INSSDeductionAmount)
-}
-
 func (i *IRRFDiscount) simplifiedDeductionAmount() decimal.Decimal {
 	if len(IRRFRanges) == 0 {
 		return decimal.Zero
@@ -99,18 +90,49 @@ func (i *IRRFDiscount) simplifiedDeductionAmount() decimal.Decimal {
 	return IRRFRanges[0].EndingValue.Mul(simplifiedDeductionPercentage)
 }
 
-func (i *IRRFDiscount) taxableBase() decimal.Decimal {
-	return i.GrossPay.Sub(i.totalDeduction())
+// totalDeductionWithDependents calcula a dedução usando dependentes + INSS
+func (i *IRRFDiscount) totalDeductionWithDependents() decimal.Decimal {
+	return i.dependentsDeduction().Add(i.INSSDeductionAmount)
 }
 
+// totalDeductionSimplified calcula a dedução usando desconto simplificado
+func (i *IRRFDiscount) totalDeductionSimplified() decimal.Decimal {
+	return i.simplifiedDeductionAmount()
+}
+
+func (i *IRRFDiscount) taxableBaseWithDeduction(deduction decimal.Decimal) decimal.Decimal {
+	return i.GrossPay.Sub(deduction)
+}
+
+// Value calcula o IRRF usando a opção mais favorável ao contribuinte
+// (desconto simplificado vs dedução de dependentes + INSS)
 func (i *IRRFDiscount) Value() decimal.Decimal {
-	matchingRange := i.findMatchingRange()
+	// Calcula IRRF com desconto simplificado
+	simplifiedDeduction := i.totalDeductionSimplified()
+	irrfSimplified := i.calculateIRRFWithDeduction(simplifiedDeduction)
+
+	// Calcula IRRF com dedução de dependentes + INSS
+	dependentsDeduction := i.totalDeductionWithDependents()
+	irrfDependents := i.calculateIRRFWithDeduction(dependentsDeduction)
+
+	// Retorna o MENOR valor (mais favorável ao contribuinte)
+	if irrfSimplified.LessThan(irrfDependents) {
+		return irrfSimplified
+	}
+	return irrfDependents
+}
+
+// calculateIRRFWithDeduction calcula o IRRF para uma dedução específica
+func (i *IRRFDiscount) calculateIRRFWithDeduction(deduction decimal.Decimal) decimal.Decimal {
+	taxableBase := i.taxableBaseWithDeduction(deduction)
+
+	matchingRange := i.findMatchingRangeForBase(taxableBase)
 	if matchingRange == nil {
 		return decimal.Zero
 	}
 
 	// Calcula o imposto pela tabela progressiva
-	taxableBaseProduct := i.taxableBase().Mul(matchingRange.Aliquot)
+	taxableBaseProduct := taxableBase.Mul(matchingRange.Aliquot)
 	calculatedTax := taxableBaseProduct.Sub(matchingRange.Deduction)
 
 	// Aplica a redução conforme a Lei nº 15.270/2025
@@ -125,8 +147,7 @@ func (i *IRRFDiscount) Value() decimal.Decimal {
 	return finalTax.RoundBank(2)
 }
 
-func (i *IRRFDiscount) findMatchingRange() *IRRFRange {
-	taxBase := i.taxableBase()
+func (i *IRRFDiscount) findMatchingRangeForBase(taxBase decimal.Decimal) *IRRFRange {
 	for _, irrfRange := range IRRFRanges {
 		if taxBase.GreaterThanOrEqual(irrfRange.StartingValue) && taxBase.LessThanOrEqual(irrfRange.EndingValue) {
 			return &irrfRange

@@ -9,21 +9,21 @@ type Payroll struct {
 	Discounts []Discount
 }
 
-func NewPayroll(grossPay decimal.Decimal, numberOfDependents int64, simplifiedDeduction bool, additionalDiscounts ...Discount) *Payroll {
+func NewPayroll(grossPay decimal.Decimal, numberOfDependents int64, additionalDiscounts ...Discount) *Payroll {
 	payroll := &Payroll{
 		GrossPay:  grossPay,
 		Discounts: make([]Discount, 0),
 	}
 
-	payroll.addMandatoryDiscounts(numberOfDependents, simplifiedDeduction)
+	payroll.addMandatoryDiscounts(numberOfDependents)
 	payroll.addOptionalDiscounts(additionalDiscounts...)
 
 	return payroll
 }
 
-func (p *Payroll) addMandatoryDiscounts(numberOfDependents int64, simplifiedDeduction bool) {
+func (p *Payroll) addMandatoryDiscounts(numberOfDependents int64) {
 	inss := NewINSSDiscount(p.GrossPay)
-	irrf := NewIRRFDiscount(p.GrossPay, numberOfDependents, inss.Value(), simplifiedDeduction)
+	irrf := NewIRRFDiscount(p.GrossPay, numberOfDependents, inss.Value())
 	p.Discounts = append(p.Discounts, inss, irrf)
 }
 

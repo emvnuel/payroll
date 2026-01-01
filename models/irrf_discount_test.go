@@ -29,12 +29,12 @@ func init() {
 // TestIRRFExample1_Receita_4500 testa o exemplo 1 da Receita Federal
 // Rendimento: R$ 4.500,00
 // Com desconto simplificado calculado: 25% do valor final da primeira faixa IRRF
-// A implementação calcula corretamente e aplica a redução até zerar o imposto
+// A implementação calcula automaticamente e usa a opção mais favorável
 func TestIRRFExample1_Receita_4500(t *testing.T) {
 	grossPay := decimal.NewFromFloat(4500.00)
 	inssDeduction := decimal.Zero
 
-	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, true)
+	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 	result := irrf.Value()
 
 	expected := decimal.Zero
@@ -49,7 +49,7 @@ func TestIRRFExample2_Receita_6000(t *testing.T) {
 	grossPay := decimal.NewFromFloat(6000.00)
 	inssDeduction := decimal.Zero
 
-	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, true)
+	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 	result := irrf.Value()
 
 	// Verificar que o imposto está sendo calculado e que há redução
@@ -71,7 +71,7 @@ func TestIRRFReduction_LimitAt5000(t *testing.T) {
 	grossPay := decimal.NewFromFloat(5000.00)
 	inssDeduction := decimal.Zero
 
-	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, true)
+	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 	result := irrf.Value()
 
 	maxExpected := decimal.NewFromFloat(100.00)
@@ -88,7 +88,7 @@ func TestIRRFReduction_NoReductionAbove7350(t *testing.T) {
 	grossPay := decimal.NewFromFloat(8000.00)
 	inssDeduction := decimal.Zero
 
-	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, true)
+	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 	result := irrf.Value()
 
 	// Acima de R$ 7.350,00 não deve ter redução
@@ -117,7 +117,7 @@ func TestIRRFReduction_GradualBetween5000And7350(t *testing.T) {
 			grossPay := decimal.NewFromFloat(tc.grossPay)
 			inssDeduction := decimal.Zero
 
-			irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, true)
+			irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 			result := irrf.Value()
 
 			maxExpected := decimal.NewFromFloat(tc.maxImposto)
@@ -138,7 +138,7 @@ func TestIRRFWithDependents(t *testing.T) {
 	inssDeduction := decimal.Zero
 	numberOfDependents := int64(2)
 
-	irrf := NewIRRFDiscount(grossPay, numberOfDependents, inssDeduction, false)
+	irrf := NewIRRFDiscount(grossPay, numberOfDependents, inssDeduction)
 	result := irrf.Value()
 
 	// Com dependentes, a base de cálculo diminui, então o imposto deve ser menor
@@ -152,7 +152,7 @@ func TestIRRFWithINSSDeduction(t *testing.T) {
 	grossPay := decimal.NewFromFloat(5000.00)
 	inssDeduction := decimal.NewFromFloat(550.00) // 11% de R$ 5.000,00
 
-	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction, false)
+	irrf := NewIRRFDiscount(grossPay, 0, inssDeduction)
 	result := irrf.Value()
 
 	// Com dedução do INSS, a base de cálculo diminui, então o imposto deve ser menor
@@ -201,7 +201,7 @@ func TestIRRFCalculateReduction(t *testing.T) {
 			calculatedTax := decimal.NewFromFloat(tc.calculatedTax)
 			expectedReduction := decimal.NewFromFloat(tc.expectedReduction)
 
-			irrf := NewIRRFDiscount(grossPay, 0, decimal.Zero, true)
+			irrf := NewIRRFDiscount(grossPay, 0, decimal.Zero)
 			reduction := irrf.calculateReduction(calculatedTax)
 
 			tolerance := decimal.NewFromFloat(0.10)

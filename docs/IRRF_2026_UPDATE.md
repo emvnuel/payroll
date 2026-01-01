@@ -6,7 +6,15 @@ Implementação das novas regras de cálculo do Imposto de Renda Retido na Fonte
 
 ## Principais Mudanças
 
-### 1. Ampliação da Faixa de Isenção
+### 1. Cálculo Automático da Opção Mais Favorável
+
+**IMPORTANTE:** O sistema agora calcula **automaticamente** o IRRF usando ambos os métodos (desconto simplificado e dedução de dependentes) e retorna o valor **mais favorável ao contribuinte**, conforme permitido pela legislação.
+
+- O parâmetro `simplifiedDeduction` foi **removido** da API
+- Não é mais necessário escolher entre desconto simplificado ou dedução de dependentes
+- O sistema sempre aplica a opção que resulta em menor imposto
+
+### 2. Ampliação da Faixa de Isenção
 
 **Até R$ 5.000,00/mês:**
 - Redução de até **R$ 312,89** no imposto calculado
@@ -20,7 +28,7 @@ Implementação das novas regras de cálculo do Imposto de Renda Retido na Fonte
 - Sem redução
 - Aplicação normal da tabela progressiva
 
-### 2. Tabela Progressiva Atualizada (2026)
+### 3. Tabela Progressiva Atualizada (2026)
 
 | Faixa | Base de Cálculo (R$) | Alíquota | Dedução (R$) |
 |-------|---------------------|----------|--------------|
@@ -90,13 +98,42 @@ IRRF Final: R$ 1.125,20
 
 ## Implementação Técnica
 
+### Mudanças na API
+
+**BREAKING CHANGE:** O parâmetro `simplifiedDeduction` foi removido do endpoint `/payroll`.
+
+**Antes:**
+```
+GET /payroll?grossPay=5000&numberOfDependents=0&fixedAmountDiscount=0&percentangeDiscount=0&simplifiedDeduction=true
+```
+
+**Agora:**
+```
+GET /payroll?grossPay=5000&numberOfDependents=0&fixedAmountDiscount=0&percentangeDiscount=0
+```
+
+O sistema calcula automaticamente usando ambos os métodos e retorna o menor IRRF.
+
 ### Arquivos Modificados
 
 1. **models/irrf_discount.go**
-   - Adicionadas constantes configuráveis via ambiente
-   - Implementada função `calculateReduction()` para aplicar a redução
-   - Atualizado método `Value()` para incluir a redução no cálculo final
-   - Adicionada função helper `getEnvOrDefault()`
+   - Removido campo `SimplifiedDeduction` da struct
+   - Adicionado método `Value()` que calcula ambas opções e retorna a mais favorável
+   - Adicionado método `calculateIRRFWithDeduction()` para cálculo com dedução específica
+   - Mantida função `calculateReduction()` para aplicar a redução da Lei 15.270/2025
+
+2. **models/payroll.go**
+   - Removido parâmetro `simplifiedDeduction` do construtor `NewPayroll()`
+   - Atualizado método `addMandatoryDiscounts()` para não passar o parâmetro
+
+3. **controllers/payroll_controller.go**
+   - Removido parâmetro `simplifiedDeduction` da API
+   - Atualizada validação de parâmetros
+   - Atualizado comentário Swagger
+
+4. **models/irrf_discount_test.go**
+   - Atualizados todos os testes para remover o parâmetro `simplifiedDeduction`
+   - Testes agora validam que o sistema escolhe automaticamente a melhor opção
 
 2. **models/irrf_discount_test.go** (novo)
    - Testes unitários validando os exemplos da Receita Federal
