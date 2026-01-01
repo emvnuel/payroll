@@ -10,10 +10,24 @@ import (
 )
 
 var (
-	DEPENDENT_DEDUCTION_AMOUNT    = os.Getenv("DEPENDENT_DEDUCTION_AMOUNT")
-	dependentDeductionAmount, _   = decimal.NewFromString(DEPENDENT_DEDUCTION_AMOUNT)
-	IRRFRanges                    = loadIRRFRangesFromEnv()
-	simplifiedDeductionPercentage = decimal.NewFromFloat32(0.25)
+	DEPENDENT_DEDUCTION_AMOUNT           = os.Getenv("DEPENDENT_DEDUCTION_AMOUNT")
+	dependentDeductionAmount, _          = decimal.NewFromString(DEPENDENT_DEDUCTION_AMOUNT)
+	IRRFRanges                           = loadIRRFRangesFromEnv()
+	IRRF_SIMPLIFIED_DEDUCTION_PERCENTAGE = getEnvOrDefault("IRRF_SIMPLIFIED_DEDUCTION_PERCENTAGE", "0.25")
+	simplifiedDeductionPercentage, _     = decimal.NewFromString(IRRF_SIMPLIFIED_DEDUCTION_PERCENTAGE)
+
+	// Nova regra de redução do IRRF 2026 (Lei nº 15.270/2025)
+	// Ampliação da faixa de isenção para rendimentos até R$ 5.000,00
+	IRRF_MAX_REDUCTION_AMOUNT  = getEnvOrDefault("IRRF_MAX_REDUCTION_AMOUNT", "312.89")
+	maxReductionAmount, _      = decimal.NewFromString(IRRF_MAX_REDUCTION_AMOUNT)
+	IRRF_REDUCTION_THRESHOLD   = getEnvOrDefault("IRRF_REDUCTION_THRESHOLD", "5000.00")
+	reductionThreshold, _      = decimal.NewFromString(IRRF_REDUCTION_THRESHOLD)
+	IRRF_REDUCTION_UPPER_LIMIT = getEnvOrDefault("IRRF_REDUCTION_UPPER_LIMIT", "7350.00")
+	reductionUpperLimit, _     = decimal.NewFromString(IRRF_REDUCTION_UPPER_LIMIT)
+	IRRF_REDUCTION_CONSTANT    = getEnvOrDefault("IRRF_REDUCTION_CONSTANT", "978.62")
+	reductionConstant, _       = decimal.NewFromString(IRRF_REDUCTION_CONSTANT)
+	IRRF_REDUCTION_MULTIPLIER  = getEnvOrDefault("IRRF_REDUCTION_MULTIPLIER", "0.133145")
+	reductionMultiplier, _     = decimal.NewFromString(IRRF_REDUCTION_MULTIPLIER)
 )
 
 type IRRFDiscount struct {
@@ -58,6 +72,15 @@ func loadIRRFRangesFromEnv() []IRRFRange {
 	return irrfRanges
 }
 
+// getEnvOrDefault retorna o valor da variável de ambiente ou um valor padrão se não estiver definida
+func getEnvOrDefault(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}
+
 func (i *IRRFDiscount) dependentsDeduction() decimal.Decimal {
 	return dependentDeductionAmount.Mul(decimal.NewFromInt(i.NumberOfDependents))
 }
@@ -86,8 +109,20 @@ func (i *IRRFDiscount) Value() decimal.Decimal {
 		return decimal.Zero
 	}
 
+	// Calcula o imposto pela tabela progressiva
 	taxableBaseProduct := i.taxableBase().Mul(matchingRange.Aliquot)
-	return taxableBaseProduct.Sub(matchingRange.Deduction).RoundBank(2)
+	calculatedTax := taxableBaseProduct.Sub(matchingRange.Deduction)
+
+	// Aplica a redução conforme a Lei nº 15.270/2025
+	reduction := i.calculateReduction(calculatedTax)
+	finalTax := calculatedTax.Sub(reduction)
+
+	// Garante que o imposto final não seja negativo
+	if finalTax.LessThan(decimal.Zero) {
+		return decimal.Zero
+	}
+
+	return finalTax.RoundBank(2)
 }
 
 func (i *IRRFDiscount) findMatchingRange() *IRRFRange {
@@ -98,6 +133,43 @@ func (i *IRRFDiscount) findMatchingRange() *IRRFRange {
 		}
 	}
 	return nil
+}
+
+// calculateReduction calcula a redução do imposto conforme a Lei nº 15.270/2025
+// Regras:
+// - Até R$ 5.000,00: redução de até R$ 312,89 (limitado ao imposto calculado)
+// - Entre R$ 5.000,01 e R$ 7.350,00: redução gradual usando fórmula: R$ 978,62 - (0,133145 x rendimento)
+// - Acima de R$ 7.350,00: sem redução
+func (i *IRRFDiscount) calculateReduction(calculatedTax decimal.Decimal) decimal.Decimal {
+	grossPay := i.GrossPay
+
+	// Acima de R$ 7.350,00: sem redução
+	if grossPay.GreaterThan(reductionUpperLimit) {
+		return decimal.Zero
+	}
+
+	var reduction decimal.Decimal
+
+	// Até R$ 5.000,00: redução máxima de R$ 312,89
+	if grossPay.LessThanOrEqual(reductionThreshold) {
+		reduction = maxReductionAmount
+	} else {
+		// Entre R$ 5.000,01 e R$ 7.350,00: redução gradual
+		// Fórmula: R$ 978,62 - (0,133145 x rendimento)
+		reduction = reductionConstant.Sub(reductionMultiplier.Mul(grossPay))
+
+		// Garantir que a redução não seja negativa
+		if reduction.LessThan(decimal.Zero) {
+			reduction = decimal.Zero
+		}
+	}
+
+	// A redução não pode ser maior que o imposto calculado
+	if reduction.GreaterThan(calculatedTax) {
+		return calculatedTax
+	}
+
+	return reduction
 }
 
 func (i *IRRFDiscount) Name() string {
