@@ -24,11 +24,11 @@ Implementação das novas regras de cálculo do Imposto de Renda Retido na Fonte
 
 | Faixa | Base de Cálculo (R$) | Alíquota | Dedução (R$) |
 |-------|---------------------|----------|--------------|
-| 1ª    | Até 2.259,20       | 0%       | 0,00         |
-| 2ª    | 2.259,21 a 2.826,65| 7,5%     | 169,44       |
-| 3ª    | 2.826,66 a 3.751,05| 15%      | 381,44       |
-| 4ª    | 3.751,06 a 4.664,68| 22,5%    | 662,77       |
-| 5ª    | Acima de 4.664,69  | 27,5%    | 896,00       |
+| 1ª    | Até 2.428,80       | 0%       | 0,00         |
+| 2ª    | 2.428,81 a 2.826,65| 7,5%     | 182,16       |
+| 3ª    | 2.826,66 a 3.751,05| 15%      | 394,16       |
+| 4ª    | 3.751,06 a 4.664,68| 22,5%    | 675,49       |
+| 5ª    | Acima de 4.664,69  | 27,5%    | 908,73       |
 
 ## Configuração
 
@@ -38,7 +38,7 @@ As seguintes variáveis foram adicionadas ao ConfigMap:
 
 ```yaml
 # Tabela IRRF atualizada para 2026
-IRRF_RANGES: '[{"init_value":0,"end_value":2259.20,"aliquot":0,"deduction":0},{"init_value":2259.21,"end_value":2826.65,"aliquot":0.075,"deduction":169.44},{"init_value":2826.66,"end_value":3751.05,"aliquot":0.15,"deduction":381.44},{"init_value":3751.06,"end_value":4664.68,"aliquot":0.225,"deduction":662.77},{"init_value":4664.69,"end_value":999999999.99,"aliquot":0.275,"deduction":896.00}]'
+IRRF_RANGES: '[{"init_value":0,"end_value":2428.80,"aliquot":0,"deduction":0},{"init_value":2428.81,"end_value":2826.65,"aliquot":0.075,"deduction":182.16},{"init_value":2826.66,"end_value":3751.05,"aliquot":0.15,"deduction":394.16},{"init_value":3751.06,"end_value":4664.68,"aliquot":0.225,"deduction":675.49},{"init_value":4664.69,"end_value":999999999.99,"aliquot":0.275,"deduction":908.73}]'
 
 # Configurações da redução (Lei 15.270/2025)
 IRRF_MAX_REDUCTION_AMOUNT: "312.89"           # Redução máxima
@@ -59,10 +59,10 @@ Todas as novas variáveis possuem valores padrão embutidos no código, conforme
 
 ```
 Rendimento Bruto: R$ 4.500,00
-Desconto Simplificado: R$ 564,80 (25% de R$ 2.259,20)
-Base de Cálculo: R$ 3.935,20
-Imposto pela Tabela: R$ 223,17
-Redução Aplicada: R$ 223,17 (limitado ao imposto)
+Desconto Simplificado: R$ 607,20 (25% de R$ 2.428,80)
+Base de Cálculo: R$ 3.892,80
+Imposto pela Tabela: R$ 267,32
+Redução Aplicada: R$ 267,32 (limitado ao imposto)
 IRRF Final: R$ 0,00 ✓
 ```
 
@@ -70,22 +70,22 @@ IRRF Final: R$ 0,00 ✓
 
 ```
 Rendimento Bruto: R$ 6.000,00
-Desconto Simplificado: R$ 564,80
-Base de Cálculo: R$ 5.435,20
-Imposto pela Tabela: R$ 598,68
+Desconto Simplificado: R$ 607,20
+Base de Cálculo: R$ 5.392,80
+Imposto pela Tabela: R$ 577,21
 Redução Gradual: R$ 978,62 - (0,133145 × 6.000) = R$ 179,75
-IRRF Final: R$ 418,93
+IRRF Final: R$ 397,46
 ```
 
 ### Exemplo 3: Rendimento de R$ 8.000,00
 
 ```
 Rendimento Bruto: R$ 8.000,00
-Desconto Simplificado: R$ 564,80
-Base de Cálculo: R$ 7.435,20
-Imposto pela Tabela: R$ 1.148,68
+Desconto Simplificado: R$ 607,20
+Base de Cálculo: R$ 7.392,80
+Imposto pela Tabela: R$ 1.125,20
 Redução Aplicada: R$ 0,00 (acima de R$ 7.350,00)
-IRRF Final: R$ 1.148,68
+IRRF Final: R$ 1.125,20
 ```
 
 ## Implementação Técnica

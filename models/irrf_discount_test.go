@@ -11,13 +11,13 @@ func init() {
 	// Configurar variáveis de ambiente necessárias para os testes
 	os.Setenv("DEPENDENT_DEDUCTION_AMOUNT", "189.59")
 
-	// Tabela progressiva mensal do IRRF 2026
+	// Tabela progressiva mensal do IRRF 2026 (oficial da Receita Federal)
 	irrfRangesJSON := `[
-		{"init_value": "0.00", "end_value": "2259.20", "aliquot": "0.00", "deduction": "0.00"},
-		{"init_value": "2259.21", "end_value": "2826.65", "aliquot": "0.075", "deduction": "169.44"},
-		{"init_value": "2826.66", "end_value": "3751.05", "aliquot": "0.15", "deduction": "381.44"},
-		{"init_value": "3751.06", "end_value": "4664.68", "aliquot": "0.225", "deduction": "662.77"},
-		{"init_value": "4664.69", "end_value": "999999999.99", "aliquot": "0.275", "deduction": "896.00"}
+		{"init_value": "0.00", "end_value": "2428.80", "aliquot": "0.00", "deduction": "0.00"},
+		{"init_value": "2428.81", "end_value": "2826.65", "aliquot": "0.075", "deduction": "182.16"},
+		{"init_value": "2826.66", "end_value": "3751.05", "aliquot": "0.15", "deduction": "394.16"},
+		{"init_value": "3751.06", "end_value": "4664.68", "aliquot": "0.225", "deduction": "675.49"},
+		{"init_value": "4664.69", "end_value": "999999999.99", "aliquot": "0.275", "deduction": "908.73"}
 	]`
 	os.Setenv("IRRF_RANGES", irrfRangesJSON)
 
